@@ -1,17 +1,13 @@
 package com.enncompany.ecom.product.service;
 
-import com.enncompany.ecom.product.mapper.ProductMapper;
-import com.enncompany.ecom.product.repository.ProductRepository;
-
 import com.enncompany.ecom.dto.ProductDto;
 import com.enncompany.ecom.entity.Product;
+import com.enncompany.ecom.exception.ProductNotFoundException;
+import com.enncompany.ecom.product.mapper.ProductMapper;
+import com.enncompany.ecom.product.repository.ProductRepository;
 import java.util.List;
-import java.util.Optional;
-
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @Transactional
@@ -27,7 +23,6 @@ public class ProductServiceImpl implements ProductService {
 
   @Override
   public ProductDto create(ProductDto dto) {
-    validate(dto);
     return mapper.toDto(repository.save(mapper.toEntity(dto)));
   }
 
@@ -51,26 +46,12 @@ public class ProductServiceImpl implements ProductService {
 
   @Override
   public ProductDto update(Long id, ProductDto dto) {
-    validate(dto);
     Product existing = find(id);
-    existing.setName(dto.getName());
+    existing.setName(dto.getName().trim());
     return mapper.toDto(repository.save(existing));
   }
 
   private Product find(Long id) {
-    return repository
-        .findById(id)
-        .orElseThrow(
-            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found: " + id));
-  }
-
-  private void validate(ProductDto dto) {
-    String name = Optional.ofNullable(dto.getName()).orElse("").trim();
-    if (name.isBlank()) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name is required");
-    }
-    if (name.length() > 200) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name must be <= 200 characters");
-    }
+    return repository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
   }
 }

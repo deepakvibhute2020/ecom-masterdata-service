@@ -16,7 +16,7 @@ public class ProductMapper {
 
   public Product toEntity(ProductDto dto) {
     Product entity = new Product();
-    entity.setName(dto.getName());
+    entity.setName(dto.getName().trim());
     return entity;
   }
 }

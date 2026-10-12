@@ -1,8 +1,8 @@
 package com.enncompany.ecom.product.controller;
 
-import com.enncompany.ecom.product.service.ProductService;
-
 import com.enncompany.ecom.dto.ProductDto;
+import com.enncompany.ecom.product.service.ProductService;
+import jakarta.validation.Valid;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,27 +19,28 @@ public class ProductController {
   }
 
   @PostMapping
-  public ResponseEntity<ProductDto> create(@RequestBody ProductDto dto) {
+  public ResponseEntity<ProductDto> create(@Valid @RequestBody ProductDto dto) {
     return ResponseEntity.status(HttpStatus.CREATED).body(service.create(dto));
   }
 
-  @GetMapping("/id/{id:\\d+}")
-  public ProductDto getById(@PathVariable Long id) {
-    return service.getById(id);
+  @GetMapping("/{id}")
+  public ResponseEntity<ProductDto> getById(@PathVariable Long id) {
+    return ResponseEntity.ok(service.getById(id));
   }
 
   @GetMapping
-  public List<ProductDto> getAll() {
-    return service.getAll();
+  public ResponseEntity<List<ProductDto>> getAll() {
+    return ResponseEntity.ok(service.getAll());
   }
 
   @GetMapping("/name/{name}")
-  public List<ProductDto> getByName(@PathVariable String name) {
-    return service.getByName(name);
+  public ResponseEntity<List<ProductDto>> getByName(@PathVariable String name) {
+    return ResponseEntity.ok(service.getByName(name));
   }
 
-  @PutMapping("/id/{id}")
-  public ProductDto update(@PathVariable Long id, @RequestBody ProductDto dto) {
-    return service.update(id, dto);
+  @PutMapping("/{id}")
+  public ResponseEntity<ProductDto> update(
+      @PathVariable Long id, @Valid @RequestBody ProductDto dto) {
+    return ResponseEntity.ok(service.update(id, dto));
   }
 }

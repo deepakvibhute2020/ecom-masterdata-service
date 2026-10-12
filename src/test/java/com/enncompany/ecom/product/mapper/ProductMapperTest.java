@@ -34,4 +34,12 @@ class ProductMapperTest {
     assertNull(entity.getId());
     assertEquals("Phone", entity.getName());
   }
+
+  @Test
+  void test_product_toEntity_trimsName() {
+    ProductDto dto = new ProductDto();
+    dto.setName("  Phone  ");
+
+    assertEquals("Phone", mapper.toEntity(dto).getName());
+  }
 }

@@ -9,25 +9,27 @@ import static org.mockito.Mockito.when;
 
 import com.enncompany.ecom.dto.ProductDto;
 import com.enncompany.ecom.entity.Product;
+import com.enncompany.ecom.exception.ProductNotFoundException;
 import com.enncompany.ecom.product.mapper.ProductMapper;
 import com.enncompany.ecom.product.repository.ProductRepository;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceImplTest {
 
   @Mock private ProductRepository repository;
-  @Spy private ProductMapper mapper = new ProductMapper();
-  @InjectMocks private ProductServiceImpl service;
+  private ProductServiceImpl service;
+
+  @BeforeEach
+  void setUp() {
+    service = new ProductServiceImpl(repository, new ProductMapper());
+  }
 
   private static Product product(Long id, String name) {
     Product p = new Product();
@@ -54,33 +56,6 @@ class ProductServiceImplTest {
   }
 
   @Test
-  void test_product_create_nullName_badRequest() {
-    ResponseStatusException ex =
-        assertThrows(ResponseStatusException.class, () -> service.create(dto(null)));
-
-    assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
-    verify(repository, never()).save(any());
-  }
-
-  @Test
-  void test_product_create_blankName_badRequest() {
-    ResponseStatusException ex =
-        assertThrows(ResponseStatusException.class, () -> service.create(dto("  ")));
-
-    assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
-    verify(repository, never()).save(any());
-  }
-
-  @Test
-  void test_product_create_nameTooLong_badRequest() {
-    ResponseStatusException ex =
-        assertThrows(ResponseStatusException.class, () -> service.create(dto("a".repeat(201))));
-
-    assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
-    verify(repository, never()).save(any());
-  }
-
-  @Test
   void test_product_getById_success() {
     when(repository.findById(1L)).thenReturn(Optional.of(product(1L, "Laptop")));
 
@@ -95,10 +70,10 @@ class ProductServiceImplTest {
   void test_product_getById_notFound() {
     when(repository.findById(5L)).thenReturn(Optional.empty());
 
-    ResponseStatusException ex =
-        assertThrows(ResponseStatusException.class, () -> service.getById(5L));
+    ProductNotFoundException ex =
+        assertThrows(ProductNotFoundException.class, () -> service.getById(5L));
 
-    assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+    assertEquals("Product not found: 5", ex.getMessage());
   }
 
   @Test
@@ -141,6 +116,18 @@ class ProductServiceImplTest {
   }
 
   @Test
+  void test_product_update_trimsName() {
+    Product existing = product(1L, "Old");
+    when(repository.findById(1L)).thenReturn(Optional.of(existing));
+    when(repository.save(existing)).thenReturn(existing);
+
+    ProductDto result = service.update(1L, dto("  New  "));
+
+    assertEquals("New", result.getName());
+    verify(repository).save(existing);
+  }
+
+  @Test
   void test_product_update_success() {
     Product existing = product(1L, "Old");
     when(repository.findById(1L)).thenReturn(Optional.of(existing));
@@ -157,19 +144,10 @@ class ProductServiceImplTest {
   void test_product_update_notFound() {
     when(repository.findById(5L)).thenReturn(Optional.empty());
 
-    ResponseStatusException ex =
-        assertThrows(ResponseStatusException.class, () -> service.update(5L, dto("New")));
+    ProductDto request = dto("New");
 
-    assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
+    assertThrows(ProductNotFoundException.class, () -> service.update(5L, request));
+
     verify(repository, never()).save(any());
-  }
-
-  @Test
-  void test_product_update_blankName_badRequest() {
-    ResponseStatusException ex =
-        assertThrows(ResponseStatusException.class, () -> service.update(1L, dto("")));
-
-    assertEquals(HttpStatus.BAD_REQUEST, ex.getStatusCode());
-    verify(repository, never()).findById(any());
   }
 }

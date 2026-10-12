@@ -6,6 +6,8 @@ import com.enncompany.ecom.product.repository.ProductRepository;
 import com.enncompany.ecom.dto.ProductDto;
 import com.enncompany.ecom.entity.Product;
 import java.util.List;
+import java.util.Optional;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,10 +65,11 @@ public class ProductServiceImpl implements ProductService {
   }
 
   private void validate(ProductDto dto) {
-    if (dto.getName() == null || dto.getName().isBlank()) {
+    String name = Optional.ofNullable(dto.getName()).orElse("").trim();
+    if (name.isBlank()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name is required");
     }
-    if (dto.getName().length() > 200) {
+    if (name.length() > 200) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name must be <= 200 characters");
     }
   }

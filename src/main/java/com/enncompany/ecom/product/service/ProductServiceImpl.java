@@ -63,7 +63,6 @@ public class ProductServiceImpl implements ProductService {
   }
 
   private void validate(ProductDto dto) {
-    var name = dto.getName()
     if (dto.getName() == null || dto.getName().isBlank()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "name is required");
     }

@@ -23,17 +23,22 @@ public class ProductController {
     return ResponseEntity.status(HttpStatus.CREATED).body(service.create(dto));
   }
 
-  @GetMapping("/{id}")
+  @GetMapping("/id/{id:\\d+}")
   public ProductDto getById(@PathVariable Long id) {
     return service.getById(id);
   }
 
   @GetMapping
-  public List<ProductDto> getByName(@RequestParam String name) {
+  public List<ProductDto> getAll() {
+    return service.getAll();
+  }
+
+  @GetMapping("/name/{name}")
+  public List<ProductDto> getByName(@PathVariable String name) {
     return service.getByName(name);
   }
 
-  @PutMapping("/{id}")
+  @PutMapping("/id/{id}")
   public ProductDto update(@PathVariable Long id, @RequestBody ProductDto dto) {
     return service.update(id, dto);
   }

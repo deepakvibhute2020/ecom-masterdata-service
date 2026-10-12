@@ -102,6 +102,25 @@ class ProductServiceImplTest {
   }
 
   @Test
+  void test_product_getAll_success() {
+    when(repository.findAll()).thenReturn(List.of(product(1L, "Laptop"), product(2L, "Phone")));
+
+    List<ProductDto> result = service.getAll();
+
+    assertEquals(2, result.size());
+    assertEquals("Laptop", result.get(0).getName());
+    assertEquals("Phone", result.get(1).getName());
+    verify(repository).findAll();
+  }
+
+  @Test
+  void test_product_getAll_empty() {
+    when(repository.findAll()).thenReturn(List.of());
+
+    assertEquals(0, service.getAll().size());
+  }
+
+  @Test
   void test_product_getByName_success() {
     when(repository.findByNameContainingIgnoreCase("lap"))
         .thenReturn(List.of(product(1L, "Laptop"), product(2L, "Gaming Laptop")));

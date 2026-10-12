@@ -37,6 +37,12 @@ public class ProductServiceImpl implements ProductService {
 
   @Override
   @Transactional(readOnly = true)
+  public List<ProductDto> getAll() {
+    return repository.findAll().stream().map(mapper::toDto).toList();
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public List<ProductDto> getByName(String name) {
     return repository.findByNameContainingIgnoreCase(name).stream().map(mapper::toDto).toList();
   }

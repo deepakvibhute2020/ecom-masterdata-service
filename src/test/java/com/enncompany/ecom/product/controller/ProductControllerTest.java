@@ -45,6 +45,15 @@ class ProductControllerTest {
   }
 
   @Test
+  void test_product_getAll_returnsList() {
+    List<ProductDto> out = List.of(new ProductDto());
+    when(service.getAll()).thenReturn(out);
+
+    assertSame(out, controller.getAll());
+    verify(service).getAll();
+  }
+
+  @Test
   void test_product_getByName_returnsList() {
     List<ProductDto> out = List.of(new ProductDto());
     when(service.getByName("lap")).thenReturn(out);

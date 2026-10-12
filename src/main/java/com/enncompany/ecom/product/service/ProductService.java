@@ -9,6 +9,8 @@ public interface ProductService {
 
   ProductDto getById(Long id);
 
+  List<ProductDto> getAll();
+
   List<ProductDto> getByName(String name);
 
   ProductDto update(Long id, ProductDto dto);

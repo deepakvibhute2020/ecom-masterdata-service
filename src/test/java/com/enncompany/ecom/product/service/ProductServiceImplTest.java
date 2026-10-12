@@ -9,11 +9,17 @@ import static org.mockito.Mockito.when;
 
 import com.enncompany.ecom.dto.ProductDto;
 import com.enncompany.ecom.entity.Product;
+import com.enncompany.ecom.exception.InvalidSortException;
 import com.enncompany.ecom.exception.ProductNotFoundException;
 import com.enncompany.ecom.product.mapper.ProductMapper;
 import com.enncompany.ecom.product.repository.ProductRepository;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -78,41 +84,94 @@ class ProductServiceImplTest {
 
   @Test
   void test_product_getAll_success() {
-    when(repository.findAll()).thenReturn(List.of(product(1L, "Laptop"), product(2L, "Phone")));
+    when(repository.findAll(any(Pageable.class)))
+        .thenReturn(
+            new PageImpl<>(
+                List.of(product(1L, "Laptop"), product(2L, "Phone")), PageRequest.of(0, 20), 2));
 
-    List<ProductDto> result = service.getAll();
+    Page<ProductDto> result = service.getAll(PageRequest.of(0, 20));
 
-    assertEquals(2, result.size());
-    assertEquals("Laptop", result.get(0).getName());
-    assertEquals("Phone", result.get(1).getName());
-    verify(repository).findAll();
+    assertEquals(2, result.getContent().size());
+    assertEquals("Laptop", result.getContent().get(0).getName());
+    assertEquals("Phone", result.getContent().get(1).getName());
+    verify(repository).findAll(PageRequest.of(0, 20));
   }
 
   @Test
   void test_product_getAll_empty() {
-    when(repository.findAll()).thenReturn(List.of());
+    when(repository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of()));
 
-    assertEquals(0, service.getAll().size());
+    assertEquals(0, service.getAll(PageRequest.of(0, 20)).getContent().size());
   }
 
   @Test
   void test_product_getByName_success() {
-    when(repository.findByNameContainingIgnoreCase("lap"))
-        .thenReturn(List.of(product(1L, "Laptop"), product(2L, "Gaming Laptop")));
+    when(repository.findByNameContainingIgnoreCase("lap", PageRequest.of(0, 20)))
+        .thenReturn(
+            new PageImpl<>(
+                List.of(product(1L, "Laptop"), product(2L, "Gaming Laptop")),
+                PageRequest.of(0, 20),
+                2));
 
-    List<ProductDto> result = service.getByName("lap");
+    Page<ProductDto> result = service.getByName("lap", PageRequest.of(0, 20));
 
-    assertEquals(2, result.size());
-    assertEquals("Laptop", result.get(0).getName());
-    assertEquals("Gaming Laptop", result.get(1).getName());
-    verify(repository).findByNameContainingIgnoreCase("lap");
+    assertEquals(2, result.getContent().size());
+    assertEquals("Laptop", result.getContent().get(0).getName());
+    assertEquals("Gaming Laptop", result.getContent().get(1).getName());
+    verify(repository).findByNameContainingIgnoreCase("lap", PageRequest.of(0, 20));
   }
 
   @Test
   void test_product_getByName_noMatch_emptyList() {
-    when(repository.findByNameContainingIgnoreCase("xyz")).thenReturn(List.of());
+    when(repository.findByNameContainingIgnoreCase("xyz", PageRequest.of(0, 20)))
+        .thenReturn(new PageImpl<>(List.of()));
 
-    assertEquals(0, service.getByName("xyz").size());
+    assertEquals(0, service.getByName("xyz", PageRequest.of(0, 20)).getContent().size());
+  }
+
+  @Test
+  void test_product_getAll_usesRequestedPageSize() {
+    when(repository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of()));
+
+    service.getAll(PageRequest.of(0, 50));
+
+    verify(repository).findAll(PageRequest.of(0, 50));
+  }
+
+  @Test
+  void test_product_getByName_usesRequestedPageSize() {
+    when(repository.findByNameContainingIgnoreCase("lap", PageRequest.of(1, 50)))
+        .thenReturn(new PageImpl<>(List.of()));
+
+    service.getByName("lap", PageRequest.of(1, 50));
+
+    verify(repository).findByNameContainingIgnoreCase("lap", PageRequest.of(1, 50));
+  }
+
+  @Test
+  void test_product_getAll_invalidSort_throws() {
+    PageRequest request = PageRequest.of(0, 20, Sort.by("string"));
+
+    assertThrows(InvalidSortException.class, () -> service.getAll(request));
+    verify(repository, never()).findAll(any(Pageable.class));
+  }
+
+  @Test
+  void test_product_getByName_invalidSort_throws() {
+    PageRequest request = PageRequest.of(0, 20, Sort.by("string"));
+
+    assertThrows(InvalidSortException.class, () -> service.getByName("lap", request));
+    verify(repository, never()).findByNameContainingIgnoreCase(any(), any());
+  }
+
+  @Test
+  void test_product_getAll_validSort_ok() {
+    PageRequest request = PageRequest.of(0, 20, Sort.by("name"));
+    when(repository.findAll(request)).thenReturn(new PageImpl<>(List.of()));
+
+    service.getAll(request);
+
+    verify(repository).findAll(request);
   }
 
   @Test

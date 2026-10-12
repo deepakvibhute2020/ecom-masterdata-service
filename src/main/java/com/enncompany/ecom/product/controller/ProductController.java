@@ -3,7 +3,10 @@ package com.enncompany.ecom.product.controller;
 import com.enncompany.ecom.dto.ProductDto;
 import com.enncompany.ecom.product.service.ProductService;
 import jakarta.validation.Valid;
-import java.util.List;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedModel;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,13 +32,16 @@ public class ProductController {
   }
 
   @GetMapping
-  public ResponseEntity<List<ProductDto>> getAll() {
-    return ResponseEntity.ok(service.getAll());
+  public ResponseEntity<PagedModel<ProductDto>> getAll(
+      @ParameterObject @PageableDefault(size = 20) Pageable pageable) {
+    return ResponseEntity.ok(new PagedModel<>(service.getAll(pageable)));
   }
 
   @GetMapping("/name/{name}")
-  public ResponseEntity<List<ProductDto>> getByName(@PathVariable String name) {
-    return ResponseEntity.ok(service.getByName(name));
+  public ResponseEntity<PagedModel<ProductDto>> getByName(
+      @PathVariable String name,
+      @ParameterObject @PageableDefault(size = 20) Pageable pageable) {
+    return ResponseEntity.ok(new PagedModel<>(service.getByName(name, pageable)));
   }
 
   @PutMapping("/{id}")

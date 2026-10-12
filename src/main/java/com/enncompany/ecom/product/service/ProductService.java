@@ -1,7 +1,8 @@
 package com.enncompany.ecom.product.service;
 
 import com.enncompany.ecom.dto.ProductDto;
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface ProductService {
 
@@ -9,9 +10,9 @@ public interface ProductService {
 
   ProductDto getById(Long id);
 
-  List<ProductDto> getAll();
+  Page<ProductDto> getAll(Pageable pageable);
 
-  List<ProductDto> getByName(String name);
+  Page<ProductDto> getByName(String name, Pageable pageable);
 
   ProductDto update(Long id, ProductDto dto);
 }

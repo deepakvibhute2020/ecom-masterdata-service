@@ -2,16 +2,23 @@ package com.enncompany.ecom.product.service;
 
 import com.enncompany.ecom.dto.ProductDto;
 import com.enncompany.ecom.entity.Product;
+import com.enncompany.ecom.exception.InvalidSortException;
 import com.enncompany.ecom.exception.ProductNotFoundException;
 import com.enncompany.ecom.product.mapper.ProductMapper;
 import com.enncompany.ecom.product.repository.ProductRepository;
-import java.util.List;
+import java.util.Set;
+
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
 public class ProductServiceImpl implements ProductService {
+
+  private static final Set<String> SORTABLE_PROPERTIES = Set.of("id", "name");
 
   private final ProductRepository repository;
   private final ProductMapper mapper;
@@ -34,14 +41,16 @@ public class ProductServiceImpl implements ProductService {
 
   @Override
   @Transactional(readOnly = true)
-  public List<ProductDto> getAll() {
-    return repository.findAll().stream().map(mapper::toDto).toList();
+  public Page<ProductDto> getAll(@ParameterObject Pageable pageable) {
+    validateSort(pageable);
+    return repository.findAll(pageable).map(mapper::toDto);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<ProductDto> getByName(String name) {
-    return repository.findByNameContainingIgnoreCase(name).stream().map(mapper::toDto).toList();
+  public Page<ProductDto> getByName(String name, @ParameterObject Pageable pageable) {
+    validateSort(pageable);
+    return repository.findByNameContainingIgnoreCase(name, pageable).map(mapper::toDto);
   }
 
   @Override
@@ -54,4 +63,13 @@ public class ProductServiceImpl implements ProductService {
   private Product find(Long id) {
     return repository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
   }
+
+  private void validateSort(Pageable pageable) {
+    pageable.getSort().forEach(order -> {
+      if (!SORTABLE_PROPERTIES.contains(order.getProperty())) {
+        throw new InvalidSortException(order.getProperty());
+      }
+    });
+  }
+
 }

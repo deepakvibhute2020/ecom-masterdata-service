@@ -35,18 +35,50 @@ Response `201 Created`:
 
 Errors: `400` if `name` is missing, blank or longer than 200 characters, or the body is malformed JSON.
 
-### Get all products
-`GET /api/products`
+### Pagination and sorting
+`GET /api/products` and `GET /api/products/name/{name}` are paginated and accept these query parameters:
 
-Response `200 OK`:
+| Parameter | Default | Description                                                                 |
+|-----------|---------|-----------------------------------------------------------------------------|
+| `page`    | `0`     | Zero-based page number.                                                     |
+| `size`    | `20`    | Number of products per page, supplied by the caller.                        |
+| `sort`    | none    | `column,direction`. Columns: `id`, `name`. Direction: `asc` or `desc`.      |
+
+Sort rules:
+- `direction` is case-insensitive (`asc`, `ASC`, `desc`, `DESC`) and defaults to `asc` when omitted.
+- Repeat `sort` to sort by several columns; they apply in the order given.
+- Any other column returns `400` with `Invalid sort property: <column>`.
+
+| Request                                         | Result                                |
+|-------------------------------------------------|---------------------------------------|
+| `?sort=id,asc`                                  | Oldest id first                       |
+| `?sort=id,desc`                                 | Newest id first                       |
+| `?sort=name,asc`                                | Name A to Z                           |
+| `?sort=name,desc`                               | Name Z to A                           |
+| `?sort=name,asc&sort=id,desc`                   | Name A to Z, then id newest first     |
+| `?sort=id,desc&sort=name,asc`                   | Id newest first, then name A to Z     |
+| `?page=1&size=5&sort=name,desc`                 | Second page of 5, name Z to A         |
+| `?sort=price,asc`                               | `400` invalid sort property           |
+
+In Swagger UI, fill `page`, `size` and `sort` as separate fields. Clear the placeholder `string` in `sort`, which is rejected with `400`.
+
+Paginated response `200 OK`:
 ```json
-[
-  { "id": 1, "name": "Laptop" },
-  { "id": 2, "name": "Smart Phone" }
-]
+{
+  "content": [
+    { "id": 1, "name": "Laptop" },
+    { "id": 2, "name": "Smart Phone" }
+  ],
+  "page": { "size": 20, "number": 0, "totalElements": 2, "totalPages": 1 }
+}
 ```
 
-Returns an empty list when there are no products.
+`content` is an empty list when there are no matches.
+
+### Get all products
+`GET /api/products?page=0&size=20&sort=name,asc`
+
+Response `200 OK`: paginated response as shown above.
 
 ### Get product by id
 `GET /api/products/{id}`
@@ -66,15 +98,20 @@ Errors: `404` if no product has that id.
 Returns products whose name contains the given text, ignoring case (SQL `LIKE %name%`).
 Example: `GET /api/products/name/phone` matches "Smart Phone" and "iPhone".
 
-Response `200 OK`:
+Supports the same `page`, `size` and `sort` parameters, e.g. `GET /api/products/name/phone?sort=name,desc`.
+
+Response `200 OK`: paginated response (see above), e.g.
 ```json
-[
-  { "id": 2, "name": "Smart Phone" },
-  { "id": 3, "name": "iPhone" }
-]
+{
+  "content": [
+    { "id": 2, "name": "Smart Phone" },
+    { "id": 3, "name": "iPhone" }
+  ],
+  "page": { "size": 20, "number": 0, "totalElements": 2, "totalPages": 1 }
+}
 ```
 
-Returns an empty list when nothing matches.
+`content` is an empty list when nothing matches.
 
 Note: a value made only of digits is treated as an id, so numeric names cannot be searched with this endpoint.
 
@@ -106,7 +143,7 @@ Errors are returned by a central `@RestControllerAdvice` in one format:
 }
 ```
 
-Handled cases: `404` product not found, `400` validation failure, malformed body, or invalid path value.
+Handled cases: `404` product not found, `400` validation failure, malformed body, invalid path value, or invalid sort property.
 
 ## Configuration
 
@@ -121,8 +158,12 @@ Handled cases: `404` product not found, `400` validation failure, malformed body
 
 ```
 curl -X POST http://localhost:8090/api/products -H "Content-Type: application/json" -d "{\"name\":\"Laptop\"}"
-curl http://localhost:8090/api/products
+curl "http://localhost:8090/api/products?page=0&size=20"
+curl "http://localhost:8090/api/products?sort=name,asc"
+curl "http://localhost:8090/api/products?sort=name,desc"
+curl "http://localhost:8090/api/products?sort=id,desc&size=5"
+curl "http://localhost:8090/api/products?sort=id,desc&sort=name,asc"
 curl http://localhost:8090/api/products/1
-curl http://localhost:8090/api/products/name/lap
+curl "http://localhost:8090/api/products/name/lap?sort=name,desc"
 curl -X PUT http://localhost:8090/api/products/1 -H "Content-Type: application/json" -d "{\"name\":\"Gaming Laptop\"}"
 ```

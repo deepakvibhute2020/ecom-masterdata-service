@@ -24,6 +24,11 @@ public class GlobalExceptionHandler {
     return build(HttpStatus.NOT_FOUND, ex.getMessage());
   }
 
+  @ExceptionHandler(InvalidSortException.class)
+  public ResponseEntity<ErrorResponse> handleInvalidSort(InvalidSortException ex) {
+    return build(HttpStatus.BAD_REQUEST, ex.getMessage());
+  }
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex) {
     String message =

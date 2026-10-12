@@ -12,9 +12,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.enncompany.ecom.dto.ProductDto;
 import com.enncompany.ecom.exception.GlobalExceptionHandler;
+import com.enncompany.ecom.exception.InvalidSortException;
 import com.enncompany.ecom.exception.ProductNotFoundException;
 import com.enncompany.ecom.product.service.ProductService;
 import java.util.List;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -133,47 +136,73 @@ class ProductControllerTest {
 
   @Test
   void test_product_getAll_ok() throws Exception {
-    when(service.getAll()).thenReturn(List.of(dto(1L, "Laptop"), dto(2L, "Phone")));
+    when(service.getAll(any())).thenReturn(
+        new PageImpl<>(
+            List.of(dto(1L, "Laptop"), dto(2L, "Phone")), PageRequest.of(0, 20), 2));
 
     mockMvc
         .perform(get("/api/products"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(2))
-        .andExpect(jsonPath("$[1].name").value("Phone"));
+        .andExpect(jsonPath("$.content.length()").value(2))
+        .andExpect(jsonPath("$.content[1].name").value("Phone"))
+        .andExpect(jsonPath("$.page.size").value(20))
+        .andExpect(jsonPath("$.page.totalElements").value(2));
 
-    verify(service).getAll();
+    verify(service).getAll(PageRequest.of(0, 20));
   }
 
   @Test
   void test_product_getAll_empty_ok() throws Exception {
-    when(service.getAll()).thenReturn(List.of());
+    when(service.getAll(any())).thenReturn(new PageImpl<>(List.of()));
 
     mockMvc
         .perform(get("/api/products"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(0));
+        .andExpect(jsonPath("$.content.length()").value(0));
+  }
+
+  @Test
+  void test_product_getAll_acceptsPageAndRequestedSize() throws Exception {
+    when(service.getAll(any())).thenReturn(new PageImpl<>(List.of()));
+
+    mockMvc
+        .perform(get("/api/products").param("page", "1").param("size", "50"))
+        .andExpect(status().isOk());
+
+    verify(service).getAll(PageRequest.of(1, 50));
+  }
+
+  @Test
+  void test_product_getAll_invalidSort_badRequest() throws Exception {
+    when(service.getAll(any())).thenThrow(new InvalidSortException("string"));
+
+    mockMvc
+        .perform(get("/api/products").param("sort", "string,asc"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Invalid sort property: string"));
   }
 
   @Test
   void test_product_getByName_ok() throws Exception {
-    when(service.getByName("lap")).thenReturn(List.of(dto(1L, "Laptop")));
+    when(service.getByName(any(), any()))
+        .thenReturn(new PageImpl<>(List.of(dto(1L, "Laptop"))));
 
     mockMvc
         .perform(get("/api/products/name/lap"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$[0].name").value("Laptop"));
+        .andExpect(jsonPath("$.content[0].name").value("Laptop"));
 
-    verify(service).getByName("lap");
+    verify(service).getByName("lap", PageRequest.of(0, 20));
   }
 
   @Test
   void test_product_getByName_noMatch_emptyList() throws Exception {
-    when(service.getByName("zzz")).thenReturn(List.of());
+    when(service.getByName(any(), any())).thenReturn(new PageImpl<>(List.of()));
 
     mockMvc
         .perform(get("/api/products/name/zzz"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.length()").value(0));
+        .andExpect(jsonPath("$.content.length()").value(0));
   }
 
   @Test

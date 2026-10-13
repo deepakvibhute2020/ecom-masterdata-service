@@ -19,6 +19,11 @@ public class GlobalExceptionHandler {
 
   public record ErrorResponse(Instant timestamp, int status, String error, String message) {}
 
+  @ExceptionHandler(CustomerNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleCustomerNotFound(CustomerNotFoundException ex) {
+    return build(HttpStatus.NOT_FOUND, ex.getMessage());
+  }
+
   @ExceptionHandler(ProductNotFoundException.class)
   public ResponseEntity<ErrorResponse> handleNotFound(ProductNotFoundException ex) {
     return build(HttpStatus.NOT_FOUND, ex.getMessage());

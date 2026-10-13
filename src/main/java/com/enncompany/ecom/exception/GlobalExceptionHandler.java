@@ -24,6 +24,11 @@ public class GlobalExceptionHandler {
     return build(HttpStatus.NOT_FOUND, ex.getMessage());
   }
 
+  @ExceptionHandler(CustomerNotFoundException.class)
+  public ResponseEntity<ErrorResponse> handleCustomerNotFound(CustomerNotFoundException ex) {
+    return build(HttpStatus.NOT_FOUND, ex.getMessage());
+  }
+
   @ExceptionHandler(InvalidSortException.class)
   public ResponseEntity<ErrorResponse> handleInvalidSort(InvalidSortException ex) {
     return build(HttpStatus.BAD_REQUEST, ex.getMessage());

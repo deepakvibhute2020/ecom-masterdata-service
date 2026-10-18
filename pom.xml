@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.enncompany</groupId>
-    <artifactId>ecom</artifactId>
+    <artifactId>ecom-masterdata-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>ecom</name>
+    <name>ecom-masterdata-service</name>
     <description>ecom</description>
     <url/>
     <licenses>
@@ -34,6 +34,7 @@
         <tomcat.version>11.0.27</tomcat.version>
         <mysql.version>26.7.0</mysql.version>
         <org-springdoc.version>3.1.1</org-springdoc.version>
+        <org.bouncycastle.version>1.80</org.bouncycastle.version>
     </properties>
     <dependencies>
         <dependency>
@@ -60,7 +61,7 @@
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
-            <version>1.80</version>
+            <version>${org.bouncycastle.version}</version>
         </dependency>
         <dependency>
             <groupId>com.mysql</groupId>

@@ -2,11 +2,13 @@ package com.enncompany.ecom.userinfo.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.enncompany.ecom.config.PasswordEncoderConfig;
 import com.enncompany.ecom.dto.UserInfoDto;
 import com.enncompany.ecom.entity.UserInfo;
 import com.enncompany.ecom.enums.UserType;
@@ -19,22 +21,26 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
 class UserInfoServiceImplTest {
 
   @Mock private UserInfoRepository repository;
+  private PasswordEncoder passwordEncoder;
   private UserInfoServiceImpl service;
 
   @BeforeEach
   void setUp() {
-    service = new UserInfoServiceImpl(repository, new UserInfoMapper());
+    passwordEncoder = new PasswordEncoderConfig().passwordEncoder();
+    service = new UserInfoServiceImpl(repository, new UserInfoMapper(), passwordEncoder);
   }
 
   private static UserInfo userInfo(
@@ -118,7 +124,10 @@ class UserInfoServiceImplTest {
     assertEquals("12345", result.getContactNo());
     assertEquals("alice@example.com", result.getEmailId());
     assertEquals(true, result.getActive());
-    verify(repository).save(any(UserInfo.class));
+
+    ArgumentCaptor<UserInfo> captor = ArgumentCaptor.forClass(UserInfo.class);
+    verify(repository).save(captor.capture());
+    assertTrue(passwordEncoder.matches("secret", captor.getValue().getUserPass()));
   }
 
   @Test
@@ -234,7 +243,10 @@ class UserInfoServiceImplTest {
     assertEquals("11111", result.getContactNo());
     assertEquals("new@example.com", result.getEmailId());
     assertEquals(true, result.getActive());
-    verify(repository).save(existing);
+
+    ArgumentCaptor<UserInfo> captor = ArgumentCaptor.forClass(UserInfo.class);
+    verify(repository).save(captor.capture());
+    assertTrue(passwordEncoder.matches("  new-secret  ", captor.getValue().getUserPass()));
   }
 
   @Test

@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
 @Transactional
@@ -16,15 +17,20 @@ public class UserInfoServiceImpl implements UserInfoService {
 
   private final UserInfoRepository repository;
   private final UserInfoMapper mapper;
+  private final PasswordEncoder passwordEncoder;
 
-  public UserInfoServiceImpl(UserInfoRepository repository, UserInfoMapper mapper) {
+  public UserInfoServiceImpl(
+      UserInfoRepository repository, UserInfoMapper mapper, PasswordEncoder passwordEncoder) {
     this.repository = repository;
     this.mapper = mapper;
+    this.passwordEncoder = passwordEncoder;
   }
 
   @Override
   public UserInfoDto create(UserInfoDto dto) {
-    return mapper.toDto(repository.save(mapper.toEntity(dto)));
+    UserInfo entity = mapper.toEntity(dto);
+    entity.setUserPass(passwordEncoder.encode(entity.getUserPass()));
+    return mapper.toDto(repository.save(entity));
   }
 
   @Override
@@ -43,6 +49,7 @@ public class UserInfoServiceImpl implements UserInfoService {
   public UserInfoDto update(Long id, UserInfoDto dto) {
     UserInfo existing = find(id);
     mapper.apply(existing, dto);
+    existing.setUserPass(passwordEncoder.encode(existing.getUserPass()));
     return mapper.toDto(repository.save(existing));
   }
 

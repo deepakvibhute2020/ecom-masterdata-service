@@ -2,7 +2,7 @@ server:
   port: 8090
 spring:
   application:
-    name: ecom
+    name: ecom-masterdata-service
   datasource:
     url: jdbc:mysql://localhost:3308/rvindb?createDatabaseIfNotExist=true
     username: ${DB_USERNAME:rvin}

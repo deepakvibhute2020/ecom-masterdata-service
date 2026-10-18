@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.enncompany</groupId>
-    <artifactId>ecom</artifactId>
+    <artifactId>ecom-masterdata-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>ecom</name>
-    <description>ecom</description>
+    <name>ecom-masterdata-service</name>
+    <description>E-commerce master data service</description>
     <url/>
     <licenses>
         <license/>

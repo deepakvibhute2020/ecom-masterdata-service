@@ -1,5 +1,5 @@
 server:
-  port: 8090
+  port: 8092
 spring:
   application:
     name: ecom
@@ -13,14 +13,8 @@ spring:
 
 management:
   server:
-    port: 8091
+    port: 8092
   endpoints:
     web:
       exposure:
-        include: health,openapi,swagger-ui
-springdoc:
-  use-management-port: true
-  show-actuator: false
-app:
-  cors:
-    allowed-origins: http://localhost:8091
+        include: health

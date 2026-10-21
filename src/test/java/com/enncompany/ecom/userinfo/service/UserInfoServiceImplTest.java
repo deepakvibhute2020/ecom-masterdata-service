@@ -164,6 +164,41 @@ class UserInfoServiceImplTest {
   }
 
   @Test
+  void test_userInfo_getByLoginId_success() {
+    when(repository.findByLoginIdAndActiveTrue("alice@example.com"))
+        .thenReturn(
+            List.of(
+                userInfo(
+                    1L,
+                    "alice@example.com",
+                    UserType.ADMIN,
+                    "hash",
+                    "USA",
+                    "NY",
+                    "1",
+                    "alice@example.com",
+                    true)));
+
+    com.enncompany.ecom.dto.UserLoginDto result = service.getByLoginId("alice@example.com");
+
+    assertEquals(1L, result.id());
+    assertEquals("hash", result.userPass());
+    assertEquals(UserType.ADMIN, result.userType());
+    assertEquals("alice@example.com", result.emailId());
+    assertEquals(true, result.active());
+  }
+
+  @Test
+  void test_userInfo_getByLoginId_notFound() {
+    when(repository.findByLoginIdAndActiveTrue("x")).thenReturn(List.of());
+
+    UserInfoNotFoundException ex =
+        assertThrows(UserInfoNotFoundException.class, () -> service.getByLoginId("x"));
+
+    assertEquals("UserInfo not found for loginId: x", ex.getMessage());
+  }
+
+  @Test
   void test_userInfo_getAll_success() {
     when(repository.findAll(any(Pageable.class)))
         .thenReturn(

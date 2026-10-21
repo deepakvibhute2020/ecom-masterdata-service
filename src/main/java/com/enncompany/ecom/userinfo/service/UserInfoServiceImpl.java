@@ -1,6 +1,7 @@
 package com.enncompany.ecom.userinfo.service;
 
 import com.enncompany.ecom.dto.UserInfoDto;
+import com.enncompany.ecom.dto.UserLoginDto;
 import com.enncompany.ecom.entity.UserInfo;
 import com.enncompany.ecom.exception.UserInfoNotFoundException;
 import com.enncompany.ecom.userinfo.mapper.UserInfoMapper;
@@ -37,6 +38,23 @@ public class UserInfoServiceImpl implements UserInfoService {
   @Transactional(readOnly = true)
   public UserInfoDto getById(Long id) {
     return mapper.toDto(find(id));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public UserLoginDto getByLoginId(String loginId) {
+    return repository.findByLoginIdAndActiveTrue(loginId).stream()
+        .findFirst()
+        .map(
+            u ->
+                new UserLoginDto(
+                    u.getId(),
+                    u.getLoginId(),
+                    u.getUserType(),
+                    u.getUserPass(),
+                    u.getEmailId(),
+                    u.getActive()))
+        .orElseThrow(() -> new UserInfoNotFoundException(loginId));
   }
 
   @Override

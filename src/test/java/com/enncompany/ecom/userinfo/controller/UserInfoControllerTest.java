@@ -195,6 +195,28 @@ class UserInfoControllerTest {
   }
 
   @Test
+  void test_userInfo_getByLoginId_ok() throws Exception {
+    when(service.getByLoginId("alice@example.com"))
+        .thenReturn(
+            new com.enncompany.ecom.dto.UserLoginDto(
+                1L, "alice@example.com", UserType.ADMIN, "hash", "alice@example.com", true));
+
+    mockMvc
+        .perform(get("/api/user-info/loginId/alice@example.com"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.loginId").value("alice@example.com"))
+        .andExpect(jsonPath("$.userPass").value("hash"))
+        .andExpect(jsonPath("$.userType").value(0));
+  }
+
+  @Test
+  void test_userInfo_getByLoginId_notFound() throws Exception {
+    when(service.getByLoginId("x")).thenThrow(new UserInfoNotFoundException("x"));
+
+    mockMvc.perform(get("/api/user-info/loginId/x")).andExpect(status().isNotFound());
+  }
+
+  @Test
   void test_userInfo_getAll_ok() throws Exception {
     when(service.getAll(any()))
         .thenReturn(

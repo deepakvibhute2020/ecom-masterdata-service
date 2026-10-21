@@ -1,6 +1,7 @@
 package com.enncompany.ecom.userinfo.controller;
 
 import com.enncompany.ecom.dto.UserInfoDto;
+import com.enncompany.ecom.dto.UserLoginDto;
 import com.enncompany.ecom.userinfo.service.UserInfoService;
 import jakarta.validation.Valid;
 import org.springdoc.core.annotations.ParameterObject;
@@ -35,6 +36,11 @@ public class UserInfoController {
   @GetMapping("/{id}")
   public ResponseEntity<UserInfoDto> getById(@PathVariable Long id) {
     return ResponseEntity.ok(service.getById(id));
+  }
+
+  @GetMapping("/loginId/{loginId}")
+  public ResponseEntity<UserLoginDto> getByLoginId(@PathVariable String loginId) {
+    return ResponseEntity.ok(service.getByLoginId(loginId));
   }
 
   @GetMapping

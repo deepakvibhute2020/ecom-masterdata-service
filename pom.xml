@@ -12,13 +12,15 @@
     <artifactId>ecom-masterdata-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>ecom-masterdata-service</name>
-    <description>ecom</description>
+    <description>ECOM Master Data Service</description>
     <url/>
     <licenses>
         <license/>
     </licenses>
     <developers>
-        <developer/>
+        <developer>
+            <name>Ratnadeep Vibhute</name>
+        </developer>
     </developers>
     <scm>
         <connection/>

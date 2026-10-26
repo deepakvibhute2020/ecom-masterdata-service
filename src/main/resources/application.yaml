@@ -11,6 +11,13 @@ spring:
     hibernate:
       ddl-auto: update
 
+app:
+  jwt:
+    # Same Base64 secret (>= 32 bytes) and issuer the auth service signs tokens with.
+    # Override with JWT_SECRET in real environments.
+    secret: ${JWT_SECRET:ZWNvbS11c2VyYXV0aC1zZXJ2aWNlLWRldi1vbmx5LXNlY3JldC1rZXktMzItYnl0ZXM=}
+    issuer: ecom-userauth-service
+
 management:
   server:
     port: 8092

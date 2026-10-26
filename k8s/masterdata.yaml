@@ -35,6 +35,12 @@ spec:
                 secretKeyRef:
                   name: ecom-db
                   key: password
+            # Must equal the auth service's JWT_SECRET (secret ecom-jwt).
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: ecom-jwt
+                  key: secret
           resources:
             requests: { cpu: 250m, memory: 384Mi }
             limits: { memory: 768Mi }

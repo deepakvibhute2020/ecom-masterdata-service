@@ -24,7 +24,7 @@ jobs:
           mvn clean install
           exit 1
 
-      #  Send email notification when build fails
+      #  Send email notification when build fails - ReTests
       - name: Trigger Centralized Email Notification
         if: failure()
         uses: peter-evans/repository-dispatch@v3
